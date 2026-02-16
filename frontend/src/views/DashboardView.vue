@@ -37,19 +37,19 @@
         <h2 class="section-title">{{ $t('dashboard.finance') }}</h2>
         <div class="kpi-grid">
           <div class="kpi-card kpi-card--highlight">
-            <span class="kpi-value">{{ formatNum(summary.finance?.revenue) }}</span>
+            <span class="kpi-value">{{ formatAmount(summary.finance?.revenue) }}</span>
             <span class="kpi-label">CA</span>
           </div>
           <div class="kpi-card">
-            <span class="kpi-value">{{ formatNum(summary.finance?.outstanding_sales) }}</span>
+            <span class="kpi-value">{{ formatAmount(summary.finance?.outstanding_sales) }}</span>
             <span class="kpi-label">{{ $t('sales.unpaid') }}</span>
           </div>
           <div class="kpi-card">
-            <span class="kpi-value">{{ formatNum(summary.finance?.outstanding_purchases) }}</span>
+            <span class="kpi-value">{{ formatAmount(summary.finance?.outstanding_purchases) }}</span>
             <span class="kpi-label">{{ $t('purchases.unpaid') }}</span>
           </div>
           <div class="kpi-card">
-            <span class="kpi-value">{{ formatNum(summary.finance?.result) }}</span>
+            <span class="kpi-value">{{ formatAmount(summary.finance?.result) }}</span>
             <span class="kpi-label">Résultat</span>
           </div>
         </div>
@@ -59,7 +59,7 @@
         <h2 class="section-title">{{ $t('dashboard.stock') }}</h2>
         <div class="kpi-grid">
           <div class="kpi-card">
-            <span class="kpi-value">{{ formatNum(summary.stock?.value) }}</span>
+            <span class="kpi-value">{{ formatAmount(summary.stock?.value) }}</span>
             <span class="kpi-label">Valeur</span>
           </div>
         </div>
@@ -93,10 +93,12 @@ import {
   Legend,
 } from 'chart.js'
 import { getSummary, getCharts } from '../api/dashboard'
+import { useCurrencyFormat } from '../composables/useCurrencyFormat'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
 const { t } = useI18n()
+const { formatAmount } = useCurrencyFormat()
 const loading = ref(true)
 const summary = ref(null)
 const charts = ref({})

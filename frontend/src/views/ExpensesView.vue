@@ -33,7 +33,7 @@
         <div class="form-group">
           <label>{{ $t('expenses.category') }}</label>
           <select v-model="expenseForm.category_id" class="input">
-            <option value="">{{ $t('expenses.categoryIdPlaceholder') }}</option>
+            <option value="">{{ $t('common.selectCategory') }}</option>
             <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
           </select>
         </div>
@@ -58,8 +58,10 @@ import Modal from '../components/Modal.vue'
 import IconButton from '../components/IconButton.vue'
 import PageHeader from '../components/PageHeader.vue'
 import { getExpenses, getCategories, createExpense, updateExpense, deleteExpense } from '../api/expenses'
+import { useCurrencyFormat } from '../composables/useCurrencyFormat'
 
 const { t } = useI18n()
+const { formatAmount } = useCurrencyFormat()
 const expenses = ref([])
 const categories = ref([])
 const loading = ref(false)
@@ -73,7 +75,7 @@ const expenseModalTitle = computed(() =>
 const expenseColumns = computed(() => [
   { key: 'date', label: t('common.date') },
   { key: 'description', label: t('expenses.description') },
-  { key: 'amount', label: t('expenses.amount') },
+  { key: 'amount', label: t('expenses.amount'), value: (item) => formatAmount(item.amount) },
   { key: 'category_id', label: t('expenses.category') },
 ])
 const expenseForm = ref({

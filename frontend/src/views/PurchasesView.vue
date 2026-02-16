@@ -33,9 +33,9 @@
           <input v-model="form.date" type="date" class="input" required />
         </div>
         <div class="form-group">
-          <label>{{ $t('purchases.supplierId') }}</label>
+          <label>{{ $t('purchases.supplier') }}</label>
           <select v-model="form.supplier_id" class="input">
-            <option value=""></option>
+            <option value="">{{ $t('common.selectSupplier') }}</option>
             <option v-for="s in suppliers" :key="s.id" :value="s.id">{{ s.name }}</option>
           </select>
         </div>
@@ -61,10 +61,10 @@
     <Modal v-model="paymentModalOpen" :title="$t('purchases.supplierPayments')">
       <form @submit.prevent="submitPayment" class="form-fields">
         <div class="form-group">
-          <label class="required">{{ $t('purchases.purchaseId') }}</label>
+          <label class="required">{{ $t('purchases.purchase') }}</label>
           <select v-model="paymentForm.purchase_id" class="input" required>
-            <option value="">—</option>
-            <option v-for="p in unpaid" :key="p.id" :value="p.id">{{ p.date }} — {{ p.total_price }}</option>
+            <option value="">{{ $t('common.selectPurchase') }}</option>
+            <option v-for="p in unpaid" :key="p.id" :value="p.id">{{ p.date }} — {{ formatAmount(p.total_price) }}</option>
           </select>
         </div>
         <div class="form-group">
@@ -93,8 +93,10 @@ import IconButton from '../components/IconButton.vue'
 import PageHeader from '../components/PageHeader.vue'
 import { createPurchase, addPayment, getUnpaid, getPurchase, updatePurchase, deletePurchase } from '../api/purchases'
 import { getSuppliers } from '../api/suppliers'
+import { useCurrencyFormat } from '../composables/useCurrencyFormat'
 
 const { t } = useI18n()
+const { formatAmount } = useCurrencyFormat()
 const unpaid = ref([])
 const suppliers = ref([])
 const loading = ref(false)
@@ -108,7 +110,7 @@ const purchaseModalTitle = computed(() =>
 
 const columns = computed(() => [
   { key: 'date', label: t('common.date') },
-  { key: 'total_price', label: t('purchases.total') },
+  { key: 'total_price', label: t('purchases.total'), value: (item) => formatAmount(item.total_price) },
   { key: 'status', label: t('purchases.status') },
 ])
 const form = ref({

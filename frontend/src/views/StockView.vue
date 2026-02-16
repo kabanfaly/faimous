@@ -75,9 +75,9 @@
           <input v-model="movementForm.date" type="date" class="input" required />
         </div>
         <div class="form-group">
-          <label class="required">{{ $t('stock.productId') }}</label>
+          <label class="required">{{ $t('stock.product') }}</label>
           <select v-model="movementForm.product_id" class="input" required>
-            <option value="">—</option>
+            <option value="">{{ $t('common.selectProduct') }}</option>
             <option v-for="p in products" :key="p.id" :value="p.id">{{ p.name }}</option>
           </select>
         </div>
@@ -132,7 +132,7 @@ const productColumns = computed(() => [
 
 const movementColumns = computed(() => [
   { key: 'date', label: t('common.date') },
-  { key: 'product_id', label: t('stock.productId') },
+  { key: 'product_id', label: t('stock.product') },
   { key: 'quantity', label: t('stock.quantity') },
   { key: 'movement_type', label: t('stock.type') },
 ])

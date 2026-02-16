@@ -38,9 +38,9 @@
           <input v-model="form.email" type="email" class="input" />
         </div>
         <div class="form-group">
-          <label>{{ $t('suppliers.cityId') }}</label>
+          <label>{{ $t('suppliers.city') }}</label>
           <select v-model="form.city_id" class="input">
-            <option value="">{{ $t('suppliers.cityIdPlaceholder') }}</option>
+            <option value="">{{ $t('common.selectCity') }}</option>
             <option v-for="c in cities" :key="c.id" :value="c.id">{{ c.name }}</option>
           </select>
         </div>
@@ -76,7 +76,7 @@ const columns = computed(() => [
   { key: 'name', label: t('suppliers.name') },
   { key: 'phone', label: t('suppliers.phone') },
   { key: 'email', label: t('suppliers.email') },
-  { key: 'city_id', label: t('suppliers.cityId') },
+  { key: 'city_id', label: t('suppliers.city') },
 ])
 
 const modalTitle = computed(() =>

@@ -54,10 +54,10 @@
     <Modal v-model="paymentModalOpen" :title="$t('sales.payments')">
       <form @submit.prevent="submitPayment" class="form-fields">
         <div class="form-group">
-          <label class="required">{{ $t('sales.saleId') }}</label>
+          <label class="required">{{ $t('sales.sale') }}</label>
           <select v-model="paymentForm.sale_id" class="input" required>
-            <option value="">—</option>
-            <option v-for="s in unpaid" :key="s.id" :value="s.id">{{ s.date }} — {{ s.total_price }}</option>
+            <option value="">{{ $t('common.selectSale') }}</option>
+            <option v-for="s in unpaid" :key="s.id" :value="s.id">{{ s.date }} — {{ formatAmount(s.total_price) }}</option>
           </select>
         </div>
         <div class="form-group">
@@ -85,8 +85,10 @@ import Modal from '../components/Modal.vue'
 import IconButton from '../components/IconButton.vue'
 import PageHeader from '../components/PageHeader.vue'
 import { createSale, addPayment, getUnpaid, getSale, updateSale, deleteSale } from '../api/sales'
+import { useCurrencyFormat } from '../composables/useCurrencyFormat'
 
 const { t } = useI18n()
+const { formatAmount } = useCurrencyFormat()
 const unpaid = ref([])
 const loading = ref(false)
 const saleModalOpen = ref(false)
@@ -99,7 +101,7 @@ const saleModalTitle = computed(() =>
 
 const columns = computed(() => [
   { key: 'date', label: t('common.date') },
-  { key: 'total_price', label: t('sales.total') },
+  { key: 'total_price', label: t('sales.total'), value: (item) => formatAmount(item.total_price) },
   { key: 'payment_status', label: t('sales.status') },
 ])
 const form = ref({

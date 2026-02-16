@@ -27,6 +27,9 @@
         <h2 class="section-title">{{ $t('financing.contributionsList') }}</h2>
         <button type="button" class="btn btn-primary" @click="openAddContribution">{{ $t('common.add') }} {{ $t('financing.contribution') }}</button>
       </div>
+      <p v-if="contributions.length" class="financing-total">
+        {{ $t('common.total') }}: <strong>{{ formatAmount(contributionsTotal) }}</strong>
+      </p>
       <PaginatedTable
         :items="contributions"
         :columns="contributionColumns"
@@ -65,9 +68,9 @@
           <input v-model="contributionForm.date" type="date" class="input" required />
         </div>
         <div class="form-group">
-          <label>{{ $t('financing.shareholderId') }}</label>
+          <label>{{ $t('financing.shareholder') }}</label>
           <select v-model="contributionForm.shareholder_id" class="input">
-            <option value="">{{ $t('financing.shareholderIdPlaceholder') }}</option>
+            <option value="">{{ $t('common.selectShareholder') }}</option>
             <option v-for="s in shareholders" :key="s.id" :value="s.id">{{ s.first_name }} {{ s.last_name }}</option>
           </select>
         </div>
@@ -96,8 +99,10 @@ import Modal from '../components/Modal.vue'
 import IconButton from '../components/IconButton.vue'
 import PageHeader from '../components/PageHeader.vue'
 import { getShareholders, createShareholder, updateShareholder, deleteShareholder, getContributions, createContribution, updateContribution, deleteContribution } from '../api/contributions'
+import { useCurrencyFormat } from '../composables/useCurrencyFormat'
 
 const { t } = useI18n()
+const { formatAmount } = useCurrencyFormat()
 const shareholders = ref([])
 const contributions = ref([])
 const loading = ref(false)
@@ -113,17 +118,38 @@ const contributionModalTitle = computed(() =>
   editingContribution.value ? `${t('common.edit')} ${t('financing.contribution')}` : `${t('common.add')} ${t('financing.contribution')}`
 )
 
+const contributionsTotal = computed(() =>
+  contributions.value.reduce((sum, c) => sum + (Number(c.amount) || 0), 0)
+)
+
 const shareholderColumns = computed(() => [
   { key: 'first_name', label: t('shareholders.firstName') },
   { key: 'last_name', label: t('shareholders.lastName') },
   { key: 'email', label: t('shareholders.email') },
+  {
+    key: 'total_contributions',
+    label: t('financing.totalContributions'),
+    value: (item) => {
+      const total = contributions.value
+        .filter((c) => c.shareholder_id === item.id)
+        .reduce((sum, c) => sum + (Number(c.amount) || 0), 0)
+      return formatAmount(total)
+    },
+  },
 ])
 
 const contributionColumns = computed(() => [
   { key: 'date', label: t('common.date') },
-  { key: 'amount', label: t('financing.amount') },
+  { key: 'amount', label: t('financing.amount'), value: (item) => formatAmount(item.amount) },
   { key: 'description', label: t('expenses.description') },
-  { key: 'shareholder_id', label: t('financing.shareholderId') },
+  {
+    key: 'shareholder_id',
+    label: t('financing.shareholder'),
+    value: (item) => {
+      const s = shareholders.value.find((sh) => sh.id === item.shareholder_id)
+      return s ? `${s.first_name || ''} ${s.last_name || ''}`.trim() || '—' : '—'
+    },
+  },
 ])
 const shareholderForm = ref({ first_name: '', last_name: '' })
 const contributionForm = ref({
@@ -242,3 +268,13 @@ async function submitContribution() {
 onMounted(load)
 </script>
 
+<style scoped>
+.financing-total {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+.financing-total strong {
+  color: var(--color-text);
+}
+</style>

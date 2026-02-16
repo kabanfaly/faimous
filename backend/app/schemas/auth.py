@@ -43,3 +43,9 @@ class OrganisationSchema(Schema):
     currency_default = fields.Str()
     language_default = fields.Str()
     created_at = fields.DateTime(dump_only=True)
+
+
+class OrganisationUpdateSchema(Schema):
+    name = fields.Str(validate=validate.Length(min=1, max=255))
+    currency_default = fields.Str(validate=validate.Length(max=10))
+    language_default = fields.Str(validate=validate.Length(max=10))

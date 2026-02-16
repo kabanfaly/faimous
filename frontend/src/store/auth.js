@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import client from '../api/client'
+import { updateCurrentOrganisation } from '../api/organisations'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
@@ -51,6 +52,12 @@ export const useAuthStore = defineStore('auth', () => {
     })
   }
 
+  async function updateOrganisation(payload) {
+    const updated = await updateCurrentOrganisation(payload)
+    organisation.value = updated
+    return updated
+  }
+
   function logout() {
     token.value = null
     user.value = null
@@ -67,6 +74,7 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     fetchMe,
     updateProfile,
+    updateOrganisation,
     changePassword,
     logout,
   }

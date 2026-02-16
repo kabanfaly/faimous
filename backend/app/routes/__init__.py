@@ -63,6 +63,11 @@ def register_blueprints(app):
     except ImportError:
         pass
     try:
+        from app.routes.currencies import currencies_bp
+        app.register_blueprint(currencies_bp, url_prefix="/api/currencies")
+    except ImportError:
+        pass
+    try:
         from app.routes.cities import cities_bp
         app.register_blueprint(cities_bp, url_prefix="/api/cities")
     except ImportError:

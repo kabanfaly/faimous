@@ -30,9 +30,9 @@
           <input v-model="form.name" type="text" class="input" required />
         </div>
         <div class="form-group">
-          <label>{{ $t('wholesalers.cityId') }}</label>
+          <label>{{ $t('wholesalers.city') }}</label>
           <select v-model="form.city_id" class="input">
-            <option value="">{{ $t('wholesalers.cityIdPlaceholder') }}</option>
+            <option value="">{{ $t('common.selectCity') }}</option>
             <option v-for="c in cities" :key="c.id" :value="c.id">{{ c.name }}</option>
           </select>
         </div>
@@ -65,7 +65,7 @@ const form = ref({ name: '', city_id: '' })
 
 const columns = computed(() => [
   { key: 'name', label: t('wholesalers.name') },
-  { key: 'city_id', label: t('wholesalers.cityId') },
+  { key: 'city_id', label: t('wholesalers.city') },
 ])
 
 const modalTitle = computed(() =>
