@@ -30,8 +30,11 @@
           <input v-model="form.name" type="text" class="input" required />
         </div>
         <div class="form-group">
-          <label>{{ $t('farms.location') }}</label>
-          <input v-model="form.location" type="text" class="input" />
+          <label>{{ $t('farms.city') }}</label>
+          <select v-model="form.city_id" class="input">
+            <option value="">{{ $t('common.selectCity') }}</option>
+            <option v-for="c in cities" :key="c.id" :value="c.id">{{ c.name }}</option>
+          </select>
         </div>
         <div class="form-actions">
           <button type="submit" class="btn btn-primary">{{ $t('common.save') }}</button>
@@ -39,6 +42,13 @@
         </div>
       </form>
     </Modal>
+
+    <ConfirmDialog
+      v-model="deleteDialogOpen"
+      :message="deleteDialogMessage"
+      :loading="deleteLoading"
+      @confirm="doConfirmDelete"
+    />
   </div>
 </template>
 
@@ -47,24 +57,41 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PaginatedTable from '../components/PaginatedTable.vue'
 import Modal from '../components/Modal.vue'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
 import IconButton from '../components/IconButton.vue'
 import PageHeader from '../components/PageHeader.vue'
 import { getFarms, createFarm, updateFarm, deleteFarm } from '../api/farms'
+import { getCities } from '../api/cities'
 
 const { t } = useI18n()
 const items = ref([])
+const cities = ref([])
 const loading = ref(false)
 const modalOpen = ref(false)
 const editing = ref(null)
-const form = ref({ name: '', location: '' })
+const form = ref({ name: '', city_id: '' })
+const deleteDialogOpen = ref(false)
+const itemToDelete = ref(null)
+const deleteLoading = ref(false)
 
 const columns = computed(() => [
   { key: 'name', label: t('farms.name') },
-  { key: 'location', label: t('farms.location') },
+  {
+    key: 'city_id',
+    label: t('farms.city'),
+    value: (item) => {
+      const city = cities.value.find((c) => c.id === item.city_id)
+      return city?.name ?? '—'
+    },
+  },
 ])
 
 const modalTitle = computed(() =>
   editing.value ? `${t('common.edit')} ${t('farms.title')}` : `${t('common.add')} ${t('farms.title')}`
+)
+
+const deleteDialogMessage = computed(() =>
+  itemToDelete.value ? `${itemToDelete.value.name} — ${t('farms.confirmDelete')}` : ''
 )
 
 function openAdd() {
@@ -79,13 +106,15 @@ function closeModal() {
 
 function resetForm() {
   editing.value = null
-  form.value = { name: '', location: '' }
+  form.value = { name: '', city_id: '' }
 }
 
 async function load() {
   loading.value = true
   try {
-    items.value = await getFarms()
+    const [itemsData, citiesData] = await Promise.all([getFarms(), getCities()])
+    items.value = itemsData
+    cities.value = citiesData
   } catch (e) {
     console.error(e)
   } finally {
@@ -95,20 +124,27 @@ async function load() {
 
 function startEdit(item) {
   editing.value = item.id
-  form.value = { name: item.name, location: item.location || '' }
+  form.value = { name: item.name, city_id: item.city_id || '' }
   modalOpen.value = true
 }
 
 function confirmDelete(item) {
-  if (window.confirm(`${item.name} — ${t('farms.confirmDelete')}`)) doDelete(item.id)
+  itemToDelete.value = item
+  deleteDialogOpen.value = true
 }
 
-async function doDelete(id) {
+async function doConfirmDelete() {
+  if (!itemToDelete.value) return
+  deleteLoading.value = true
   try {
-    await deleteFarm(id)
+    await deleteFarm(itemToDelete.value.id)
+    deleteDialogOpen.value = false
+    itemToDelete.value = null
     await load()
   } catch (e) {
     console.error(e)
+  } finally {
+    deleteLoading.value = false
   }
 }
 

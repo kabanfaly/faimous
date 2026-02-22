@@ -3,6 +3,7 @@ from marshmallow import Schema, fields
 
 class SaleSchema(Schema):
     date = fields.Date(required=True)
+    farm_id = fields.Str(allow_none=True)
     type = fields.Str(allow_none=True)
     quantity = fields.Int(load_default=0)
     unit_price = fields.Decimal(allow_none=True, as_string=True)

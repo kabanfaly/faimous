@@ -34,8 +34,11 @@
           <input v-model="form.description" type="text" class="input" />
         </div>
         <div class="form-group">
-          <label>{{ $t('products.type') }}</label>
-          <input v-model="form.type" type="text" class="input" />
+          <label class="required">{{ $t('products.type') }}</label>
+          <select v-model="form.product_type_id" class="input" required>
+            <option value="" disabled>{{ $t('common.selectProduct') }}</option>
+            <option v-for="pt in productTypes" :key="pt.id" :value="pt.id">{{ pt.name }}</option>
+          </select>
         </div>
         <div class="form-group">
           <label>{{ $t('products.unit') }}</label>
@@ -47,6 +50,13 @@
         </div>
       </form>
     </Modal>
+
+    <ConfirmDialog
+      v-model="deleteDialogOpen"
+      :message="deleteDialogMessage"
+      :loading="deleteLoading"
+      @confirm="doConfirmDelete"
+    />
   </div>
 </template>
 
@@ -55,26 +65,40 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PaginatedTable from '../components/PaginatedTable.vue'
 import Modal from '../components/Modal.vue'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
 import IconButton from '../components/IconButton.vue'
 import PageHeader from '../components/PageHeader.vue'
 import { getProducts, createProduct, updateProduct, deleteProduct } from '../api/products'
+import { getProductTypes } from '../api/productTypes'
 
 const { t } = useI18n()
 const items = ref([])
+const productTypes = ref([])
 const loading = ref(false)
 const modalOpen = ref(false)
 const editing = ref(null)
-const form = ref({ name: '', description: '', type: '', unit: '' })
+const form = ref({ name: '', description: '', product_type_id: '', unit: '' })
+const deleteDialogOpen = ref(false)
+const itemToDelete = ref(null)
+const deleteLoading = ref(false)
 
 const columns = computed(() => [
   { key: 'name', label: t('products.name') },
   { key: 'description', label: t('products.description') },
-  { key: 'type', label: t('products.type') },
+  {
+    key: 'product_type',
+    label: t('products.type'),
+    value: (item) => item.product_type?.name ?? '—',
+  },
   { key: 'unit', label: t('products.unit') },
 ])
 
 const modalTitle = computed(() =>
   editing.value ? `${t('common.edit')} ${t('products.title')}` : `${t('common.add')} ${t('products.title')}`
+)
+
+const deleteDialogMessage = computed(() =>
+  itemToDelete.value ? `${itemToDelete.value.name} — ${t('products.confirmDelete')}` : ''
 )
 
 function openAdd() {
@@ -89,13 +113,15 @@ function closeModal() {
 
 function resetForm() {
   editing.value = null
-  form.value = { name: '', description: '', type: '', unit: '' }
+  form.value = { name: '', description: '', product_type_id: '', unit: '' }
 }
 
 async function load() {
   loading.value = true
   try {
-    items.value = await getProducts()
+    const [itemsData, typesData] = await Promise.all([getProducts(), getProductTypes()])
+    items.value = itemsData
+    productTypes.value = typesData
   } catch (e) {
     console.error(e)
   } finally {
@@ -105,27 +131,43 @@ async function load() {
 
 function startEdit(item) {
   editing.value = item.id
-  form.value = { name: item.name, description: item.description || '', type: item.type || '', unit: item.unit || '' }
+  form.value = {
+    name: item.name,
+    description: item.description || '',
+    product_type_id: item.product_type_id || '',
+    unit: item.unit || '',
+  }
   modalOpen.value = true
 }
 
 function confirmDelete(item) {
-  if (window.confirm(`${item.name} — ${t('products.confirmDelete')}`)) doDelete(item.id)
+  itemToDelete.value = item
+  deleteDialogOpen.value = true
 }
 
-async function doDelete(id) {
+async function doConfirmDelete() {
+  if (!itemToDelete.value) return
+  deleteLoading.value = true
   try {
-    await deleteProduct(id)
+    await deleteProduct(itemToDelete.value.id)
+    deleteDialogOpen.value = false
+    itemToDelete.value = null
     await load()
   } catch (e) {
     console.error(e)
+  } finally {
+    deleteLoading.value = false
   }
 }
 
 async function submit() {
   try {
-    if (editing.value) await updateProduct(editing.value, form.value)
-    else await createProduct(form.value)
+    const payload = {
+      ...form.value,
+      product_type_id: form.value.product_type_id || undefined,
+    }
+    if (editing.value) await updateProduct(editing.value, payload)
+    else await createProduct(payload)
     closeModal()
     await load()
   } catch (e) {

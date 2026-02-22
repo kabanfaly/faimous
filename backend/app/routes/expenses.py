@@ -51,8 +51,9 @@ def get_expenses():
         return jsonify({"message": "Organisation required"}), 403
     expenses = list_expenses(org_id)
     return jsonify([{
-        "id": e.id, "date": str(e.date), "description": e.description, "category_id": e.category_id,
-        "amount": float(e.amount), "currency": e.currency, "amount_base": float(e.amount_base or 0),
+        "id": e.id, "date": str(e.date), "description": e.description, "farm_id": e.farm_id,
+        "category_id": e.category_id, "amount": float(e.amount), "currency": e.currency,
+        "amount_base": float(e.amount_base or 0),
     } for e in expenses])
 
 

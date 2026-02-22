@@ -33,6 +33,13 @@
           <input v-model="form.date" type="date" class="input" required />
         </div>
         <div class="form-group">
+          <label>{{ $t('dailyOperations.farm') }}</label>
+          <select v-model="form.farm_id" class="input">
+            <option value="">{{ $t('common.selectFarm') }}</option>
+            <option v-for="f in farms" :key="f.id" :value="f.id">{{ f.name }}</option>
+          </select>
+        </div>
+        <div class="form-group">
           <label>{{ $t('common.quantity') }}</label>
           <input v-model.number="form.quantity" type="number" class="input" min="0" />
         </div>
@@ -74,6 +81,13 @@
         </div>
       </form>
     </Modal>
+
+    <ConfirmDialog
+      v-model="deleteDialogOpen"
+      :message="deleteDialogMessage"
+      :loading="deleteLoading"
+      @confirm="doConfirmDelete"
+    />
   </div>
 </template>
 
@@ -82,30 +96,49 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PaginatedTable from '../components/PaginatedTable.vue'
 import Modal from '../components/Modal.vue'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
 import IconButton from '../components/IconButton.vue'
 import PageHeader from '../components/PageHeader.vue'
 import { createSale, addPayment, getUnpaid, getSale, updateSale, deleteSale } from '../api/sales'
+import { getFarms } from '../api/farms'
 import { useCurrencyFormat } from '../composables/useCurrencyFormat'
 
 const { t } = useI18n()
 const { formatAmount } = useCurrencyFormat()
 const unpaid = ref([])
+const farms = ref([])
 const loading = ref(false)
 const saleModalOpen = ref(false)
 const paymentModalOpen = ref(false)
 const editingSale = ref(null)
+const deleteDialogOpen = ref(false)
+const itemToDelete = ref(null)
+const deleteLoading = ref(false)
 
 const saleModalTitle = computed(() =>
   editingSale.value ? `${t('common.edit')} ${t('sales.title')}` : `${t('common.add')} ${t('sales.title')}`
 )
 
+const deleteDialogMessage = computed(() =>
+  itemToDelete.value ? `${itemToDelete.value.date} — ${t('sales.confirmDelete')}` : ''
+)
+
 const columns = computed(() => [
   { key: 'date', label: t('common.date') },
+  {
+    key: 'farm_id',
+    label: t('dailyOperations.farm'),
+    value: (item) => {
+      const farm = farms.value.find((f) => f.id === item.farm_id)
+      return farm?.name ?? '—'
+    },
+  },
   { key: 'total_price', label: t('sales.total'), value: (item) => formatAmount(item.total_price) },
   { key: 'payment_status', label: t('sales.status') },
 ])
 const form = ref({
   date: new Date().toISOString().slice(0, 10),
+  farm_id: '',
   quantity: 0,
   unit_price: 0,
   total_price: 0,
@@ -119,7 +152,14 @@ const paymentForm = ref({
 
 function openAddSale() {
   editingSale.value = null
-  form.value = { date: new Date().toISOString().slice(0, 10), quantity: 0, unit_price: 0, total_price: 0, payment_status: 'unpaid' }
+  form.value = {
+    date: new Date().toISOString().slice(0, 10),
+    farm_id: '',
+    quantity: 0,
+    unit_price: 0,
+    total_price: 0,
+    payment_status: 'unpaid',
+  }
   saleModalOpen.value = true
 }
 
@@ -134,6 +174,7 @@ async function startEdit(item) {
     editingSale.value = item.id
     form.value = {
       date: s.date,
+      farm_id: s.farm_id || '',
       quantity: s.quantity ?? 0,
       unit_price: s.unit_price ?? 0,
       total_price: s.total_price ?? 0,
@@ -146,22 +187,31 @@ async function startEdit(item) {
 }
 
 function confirmDelete(item) {
-  if (window.confirm(`${item.date} — ${t('sales.confirmDelete')}`)) doDeleteSale(item.id)
+  itemToDelete.value = item
+  deleteDialogOpen.value = true
 }
 
-async function doDeleteSale(id) {
+async function doConfirmDelete() {
+  if (!itemToDelete.value) return
+  deleteLoading.value = true
   try {
-    await deleteSale(id)
+    await deleteSale(itemToDelete.value.id)
+    deleteDialogOpen.value = false
+    itemToDelete.value = null
     await load()
   } catch (e) {
     console.error(e)
+  } finally {
+    deleteLoading.value = false
   }
 }
 
 async function load() {
   loading.value = true
   try {
-    unpaid.value = await getUnpaid()
+    const [unpaidData, farmsData] = await Promise.all([getUnpaid(), getFarms()])
+    unpaid.value = unpaidData
+    farms.value = farmsData
   } catch (e) {
     console.error(e)
   } finally {
@@ -171,10 +221,11 @@ async function load() {
 
 async function submitSale() {
   try {
+    const payload = { ...form.value, farm_id: form.value.farm_id || undefined }
     if (editingSale.value) {
-      await updateSale(editingSale.value, form.value)
+      await updateSale(editingSale.value, payload)
     } else {
-      await createSale(form.value)
+      await createSale(payload)
     }
     closeSaleModal()
     await load()

@@ -10,4 +10,4 @@ class Shareholder(db.Model):
     first_name = db.Column(db.String(100), nullable=False)
     last_name = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(50), nullable=True)
-    email = db.Column(db.String(255), nullable=True)
+    email = db.Column(db.String(255), nullable=False)

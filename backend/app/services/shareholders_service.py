@@ -12,7 +12,7 @@ def create_shareholder(organisation_id, data):
         first_name=data["first_name"],
         last_name=data["last_name"],
         phone=data.get("phone"),
-        email=data.get("email"),
+        email=data["email"],
     )
     db.session.add(shareholder)
     db.session.commit()

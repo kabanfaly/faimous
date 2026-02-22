@@ -8,12 +8,16 @@ def get_organisation_id():
 
 
 def list_contributions(organisation_id):
-    return Contribution.query.filter_by(organisation_id=organisation_id).order_by(Contribution.date.desc()).all()
+    return (
+        Contribution.query.join(Shareholder, Contribution.shareholder_id == Shareholder.id)
+        .filter(Shareholder.organisation_id == organisation_id)
+        .order_by(Contribution.date.desc())
+        .all()
+    )
 
 
 def create_contribution(organisation_id, data):
     contrib = Contribution(
-        organisation_id=organisation_id,
         date=data["date"],
         shareholder_id=data.get("shareholder_id"),
         amount=data["amount"],
@@ -27,7 +31,11 @@ def create_contribution(organisation_id, data):
 
 
 def get_contribution(organisation_id, contribution_id):
-    return Contribution.query.filter_by(id=contribution_id, organisation_id=organisation_id).first()
+    return (
+        Contribution.query.join(Shareholder, Contribution.shareholder_id == Shareholder.id)
+        .filter(Contribution.id == contribution_id, Shareholder.organisation_id == organisation_id)
+        .first()
+    )
 
 
 def update_contribution(contrib, data):

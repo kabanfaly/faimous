@@ -35,6 +35,13 @@
         </div>
       </form>
     </Modal>
+
+    <ConfirmDialog
+      v-model="deleteDialogOpen"
+      :message="deleteDialogMessage"
+      :loading="deleteLoading"
+      @confirm="doConfirmDelete"
+    />
   </div>
 </template>
 
@@ -43,6 +50,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PaginatedTable from '../components/PaginatedTable.vue'
 import Modal from '../components/Modal.vue'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
 import IconButton from '../components/IconButton.vue'
 import PageHeader from '../components/PageHeader.vue'
 import { getExpenseCategories, createExpenseCategory, updateExpenseCategory, deleteExpenseCategory } from '../api/expenseCategories'
@@ -53,6 +61,9 @@ const loading = ref(false)
 const modalOpen = ref(false)
 const editing = ref(null)
 const form = ref({ name: '' })
+const deleteDialogOpen = ref(false)
+const itemToDelete = ref(null)
+const deleteLoading = ref(false)
 
 const columns = computed(() => [
   { key: 'name', label: t('expenseCategories.name') },
@@ -60,6 +71,10 @@ const columns = computed(() => [
 
 const modalTitle = computed(() =>
   editing.value ? `${t('common.edit')} ${t('expenseCategories.title')}` : `${t('common.add')} ${t('expenseCategories.title')}`
+)
+
+const deleteDialogMessage = computed(() =>
+  itemToDelete.value ? `${itemToDelete.value.name} — ${t('expenseCategories.confirmDelete')}` : ''
 )
 
 function openAdd() {
@@ -95,15 +110,22 @@ function startEdit(item) {
 }
 
 function confirmDelete(item) {
-  if (window.confirm(`${item.name} — ${t('expenseCategories.confirmDelete')}`)) doDelete(item.id)
+  itemToDelete.value = item
+  deleteDialogOpen.value = true
 }
 
-async function doDelete(id) {
+async function doConfirmDelete() {
+  if (!itemToDelete.value) return
+  deleteLoading.value = true
   try {
-    await deleteExpenseCategory(id)
+    await deleteExpenseCategory(itemToDelete.value.id)
+    deleteDialogOpen.value = false
+    itemToDelete.value = null
     await load()
   } catch (e) {
     console.error(e)
+  } finally {
+    deleteLoading.value = false
   }
 }
 

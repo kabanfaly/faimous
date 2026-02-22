@@ -3,7 +3,6 @@ from marshmallow import Schema, fields, validate
 
 class WholesalerSchema(Schema):
     id = fields.Str(dump_only=True)
-    organisation_id = fields.Str(dump_only=True)
     name = fields.Str()
     city_id = fields.Str(allow_none=True)
 

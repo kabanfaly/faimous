@@ -3,15 +3,14 @@ from app.models import Product
 
 
 def list_products(organisation_id):
-    return Product.query.filter_by(organisation_id=organisation_id).order_by(Product.name).all()
+    return Product.query.order_by(Product.name).all()
 
 
 def create_product(organisation_id, data):
     product = Product(
-        organisation_id=organisation_id,
+        product_type_id=data.get("product_type_id"),
         name=data["name"],
         description=data.get("description"),
-        type=data.get("type"),
         unit=data.get("unit"),
     )
     db.session.add(product)
@@ -20,7 +19,10 @@ def create_product(organisation_id, data):
 
 
 def get_product(organisation_id, product_id):
-    return Product.query.filter_by(id=product_id, organisation_id=organisation_id).first()
+    product = Product.query.get(product_id)
+    if not product:
+        return None
+    return product
 
 
 def update_product(product, data):
@@ -28,8 +30,8 @@ def update_product(product, data):
         product.name = data["name"]
     if "description" in data:
         product.description = data["description"]
-    if "type" in data:
-        product.type = data["type"]
+    if "product_type_id" in data:
+        product.product_type_id = data["product_type_id"]
     if "unit" in data:
         product.unit = data["unit"]
     db.session.commit()

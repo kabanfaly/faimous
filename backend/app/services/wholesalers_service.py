@@ -1,14 +1,18 @@
 from app import db
-from app.models import Wholesaler
+from app.models import Wholesaler, City
 
 
 def list_wholesalers(organisation_id):
-    return Wholesaler.query.filter_by(organisation_id=organisation_id).order_by(Wholesaler.name).all()
+    return (
+        Wholesaler.query.join(City, Wholesaler.city_id == City.id)
+        .filter(City.organisation_id == organisation_id)
+        .order_by(Wholesaler.name)
+        .all()
+    )
 
 
 def create_wholesaler(organisation_id, data):
     wholesaler = Wholesaler(
-        organisation_id=organisation_id,
         name=data["name"],
         city_id=data.get("city_id"),
     )
@@ -18,7 +22,11 @@ def create_wholesaler(organisation_id, data):
 
 
 def get_wholesaler(organisation_id, wholesaler_id):
-    return Wholesaler.query.filter_by(id=wholesaler_id, organisation_id=organisation_id).first()
+    return (
+        Wholesaler.query.join(City, Wholesaler.city_id == City.id)
+        .filter(Wholesaler.id == wholesaler_id, City.organisation_id == organisation_id)
+        .first()
+    )
 
 
 def update_wholesaler(wholesaler, data):

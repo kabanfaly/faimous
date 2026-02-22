@@ -17,7 +17,7 @@
               :key="item.to"
               :to="item.to"
               class="nav-link"
-              active-class="nav-link-active"
+              exact-active-class="nav-link-active"
             >
               <NavIcon :name="item.icon" />
               <span>{{ $t(`nav.${item.i18nKey}`) }}</span>
@@ -174,6 +174,7 @@ const navGroups = [
     labelKey: 'groupFarm',
     items: [
       { to: '/production', i18nKey: 'production', icon: 'production' },
+      { to: '/daily-operations', i18nKey: 'dailyOperations', icon: 'production' },
       { to: '/feed', i18nKey: 'feed', icon: 'feed' },
       { to: '/stock', i18nKey: 'stock', icon: 'stock' },
     ],
@@ -202,6 +203,7 @@ const navGroups = [
     items: [
       { to: '/users', i18nKey: 'users', icon: 'users' },
       { to: '/products', i18nKey: 'products', icon: 'products' },
+      { to: '/product-types', i18nKey: 'productTypes', icon: 'productTypes' },
       { to: '/expense-categories', i18nKey: 'expenseCategories', icon: 'expenseCategories' },
     ],
   },

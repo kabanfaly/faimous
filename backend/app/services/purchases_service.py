@@ -1,6 +1,6 @@
 from decimal import Decimal
 from app import db
-from app.models import Purchase, SupplierPayment
+from app.models import Purchase, SupplierPayment, Supplier, City
 
 
 def get_organisation_id():
@@ -10,7 +10,6 @@ def get_organisation_id():
 
 def create_purchase(organisation_id, data):
     purchase = Purchase(
-        organisation_id=organisation_id,
         date=data["date"],
         supplier_id=data.get("supplier_id"),
         product_id=data.get("product_id"),
@@ -27,7 +26,12 @@ def create_purchase(organisation_id, data):
 
 
 def add_supplier_payment(purchase_id, organisation_id, data):
-    purchase = Purchase.query.filter_by(id=purchase_id, organisation_id=organisation_id).first()
+    purchase = (
+        Purchase.query.join(Supplier, Purchase.supplier_id == Supplier.id)
+        .join(City, Supplier.city_id == City.id)
+        .filter(Purchase.id == purchase_id, City.organisation_id == organisation_id)
+        .first()
+    )
     if not purchase:
         return None
     payment = SupplierPayment(
@@ -49,15 +53,23 @@ def add_supplier_payment(purchase_id, organisation_id, data):
 
 
 def get_unpaid_purchases(organisation_id):
-    return Purchase.query.filter_by(
-        organisation_id=organisation_id,
-    ).filter(
-        Purchase.status.in_(["unpaid", "partial"])
-    ).order_by(Purchase.date.desc()).all()
+    return (
+        Purchase.query.join(Supplier, Purchase.supplier_id == Supplier.id)
+        .join(City, Supplier.city_id == City.id)
+        .filter(City.organisation_id == organisation_id)
+        .filter(Purchase.status.in_(["unpaid", "partial"]))
+        .order_by(Purchase.date.desc())
+        .all()
+    )
 
 
 def get_purchase(organisation_id, purchase_id):
-    return Purchase.query.filter_by(id=purchase_id, organisation_id=organisation_id).first()
+    return (
+        Purchase.query.join(Supplier, Purchase.supplier_id == Supplier.id)
+        .join(City, Supplier.city_id == City.id)
+        .filter(Purchase.id == purchase_id, City.organisation_id == organisation_id)
+        .first()
+    )
 
 
 def update_purchase(purchase, data):

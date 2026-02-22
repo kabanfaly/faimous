@@ -50,6 +50,13 @@
         </div>
       </form>
     </Modal>
+
+    <ConfirmDialog
+      v-model="deleteDialogOpen"
+      :message="deleteDialogMessage"
+      :loading="deleteLoading"
+      @confirm="doConfirmDelete"
+    />
   </div>
 </template>
 
@@ -58,6 +65,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PaginatedTable from '../components/PaginatedTable.vue'
 import Modal from '../components/Modal.vue'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
 import IconButton from '../components/IconButton.vue'
 import PageHeader from '../components/PageHeader.vue'
 import { getSuppliers, createSupplier, updateSupplier, deleteSupplier } from '../api/suppliers'
@@ -71,6 +79,9 @@ const loading = ref(false)
 const modalOpen = ref(false)
 const editing = ref(null)
 const form = ref({ name: '', phone: '', email: '', city_id: '' })
+const deleteDialogOpen = ref(false)
+const itemToDelete = ref(null)
+const deleteLoading = ref(false)
 
 const columns = computed(() => [
   { key: 'name', label: t('suppliers.name') },
@@ -81,6 +92,10 @@ const columns = computed(() => [
 
 const modalTitle = computed(() =>
   editing.value ? `${t('common.edit')} ${t('suppliers.title')}` : `${t('common.add')} ${t('suppliers.title')}`
+)
+
+const deleteDialogMessage = computed(() =>
+  itemToDelete.value ? `${itemToDelete.value.name} — ${t('suppliers.confirmDelete')}` : ''
 )
 
 function openAdd() {
@@ -118,15 +133,22 @@ function startEdit(s) {
 }
 
 function confirmDelete(s) {
-  if (window.confirm(`${s.name} — ${t('suppliers.confirmDelete')}`)) doDelete(s.id)
+  itemToDelete.value = s
+  deleteDialogOpen.value = true
 }
 
-async function doDelete(id) {
+async function doConfirmDelete() {
+  if (!itemToDelete.value) return
+  deleteLoading.value = true
   try {
-    await deleteSupplier(id)
+    await deleteSupplier(itemToDelete.value.id)
+    deleteDialogOpen.value = false
+    itemToDelete.value = null
     await load()
   } catch (e) {
     console.error(e)
+  } finally {
+    deleteLoading.value = false
   }
 }
 

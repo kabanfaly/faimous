@@ -30,7 +30,17 @@ def get_products():
     if not org_id:
         return jsonify({"message": "Organisation required"}), 403
     products = list_products(org_id)
-    return jsonify([{"id": p.id, "name": p.name, "description": p.description, "type": p.type, "unit": p.unit} for p in products])
+    return jsonify([
+        {
+            "id": p.id,
+            "name": p.name,
+            "description": p.description,
+            "product_type_id": p.product_type_id,
+            "product_type": {"id": p.product_type.id, "name": p.product_type.name} if p.product_type else None,
+            "unit": p.unit,
+        }
+        for p in products
+    ])
 
 
 @stock_bp.route("/products", methods=["POST"])

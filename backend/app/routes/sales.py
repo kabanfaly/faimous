@@ -55,7 +55,10 @@ def unpaid():
     if not org_id:
         return jsonify({"message": "Organisation required"}), 403
     sales = get_unpaid_sales(org_id)
-    return jsonify([{"id": s.id, "date": str(s.date), "total_price": float(s.total_price or 0), "payment_status": s.payment_status} for s in sales])
+    return jsonify([
+        {"id": s.id, "date": str(s.date), "farm_id": s.farm_id, "total_price": float(s.total_price or 0), "payment_status": s.payment_status}
+        for s in sales
+    ])
 
 
 @sales_bp.route("/<sale_id>", methods=["GET"])
@@ -68,8 +71,12 @@ def get_sale_route(sale_id):
     if not sale:
         return jsonify({"message": "Sale not found"}), 404
     return jsonify({
-        "id": sale.id, "date": str(sale.date), "quantity": sale.quantity or 0,
-        "unit_price": float(sale.unit_price or 0), "total_price": float(sale.total_price or 0),
+        "id": sale.id,
+        "date": str(sale.date),
+        "farm_id": sale.farm_id,
+        "quantity": sale.quantity or 0,
+        "unit_price": float(sale.unit_price or 0),
+        "total_price": float(sale.total_price or 0),
         "payment_status": sale.payment_status,
     })
 

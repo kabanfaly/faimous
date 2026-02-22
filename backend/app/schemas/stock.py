@@ -1,10 +1,16 @@
 from marshmallow import Schema, fields
 
 
+class ProductTypeSchema(Schema):
+    id = fields.Str()
+    name = fields.Str()
+
+
 class ProductSchema(Schema):
     name = fields.Str(required=True)
+    product_type_id = fields.Str(required=True)
+    product_type = fields.Nested(ProductTypeSchema, allow_none=True)
     description = fields.Str(allow_none=True)
-    type = fields.Str(allow_none=True)
     unit = fields.Str(allow_none=True)
 
 

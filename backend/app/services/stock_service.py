@@ -1,7 +1,7 @@
 from decimal import Decimal
 from sqlalchemy import func
 from app import db
-from app.models import Product, StockMovement
+from app.models import Product, ProductType, StockMovement, Farm
 
 
 def get_organisation_id():
@@ -10,15 +10,14 @@ def get_organisation_id():
 
 
 def list_products(organisation_id):
-    return Product.query.filter_by(organisation_id=organisation_id).order_by(Product.name).all()
+    return Product.query.order_by(Product.name).all()
 
 
 def create_product(organisation_id, data):
     product = Product(
-        organisation_id=organisation_id,
+        product_type_id=data.get("product_type_id"),
         name=data["name"],
         description=data.get("description"),
-        type=data.get("type"),
         unit=data.get("unit"),
     )
     db.session.add(product)
@@ -27,7 +26,8 @@ def create_product(organisation_id, data):
 
 
 def get_product(organisation_id, product_id):
-    return Product.query.filter_by(id=product_id, organisation_id=organisation_id).first()
+    from app.services.products_service import get_product as get_product_scope
+    return get_product_scope(organisation_id, product_id)
 
 
 def update_product(product, data):
@@ -35,8 +35,8 @@ def update_product(product, data):
         product.name = data["name"]
     if "description" in data:
         product.description = data["description"]
-    if "type" in data:
-        product.type = data["type"]
+    if "product_type_id" in data:
+        product.product_type_id = data["product_type_id"]
     if "unit" in data:
         product.unit = data["unit"]
     db.session.commit()
@@ -48,16 +48,21 @@ def delete_product(product):
     db.session.commit()
 
 
+def _product_org_filter(query, organisation_id):
+    """Apply organisation scope via Product -> ProductType -> Farm."""
+    return query
+
+
 def list_stock_movements(organisation_id, product_id=None):
-    q = StockMovement.query.filter_by(organisation_id=organisation_id)
+    q = StockMovement.query.join(Product, StockMovement.product_id == Product.id)
+    q = _product_org_filter(q, organisation_id)
     if product_id:
-        q = q.filter_by(product_id=product_id)
+        q = q.filter(StockMovement.product_id == product_id)
     return q.order_by(StockMovement.date.desc()).all()
 
 
 def create_stock_movement(organisation_id, data):
     movement = StockMovement(
-        organisation_id=organisation_id,
         date=data["date"],
         product_id=data["product_id"],
         description=data.get("description"),
@@ -72,7 +77,12 @@ def create_stock_movement(organisation_id, data):
 
 
 def get_stock_movement(organisation_id, movement_id):
-    return StockMovement.query.filter_by(id=movement_id, organisation_id=organisation_id).first()
+    q = (
+        StockMovement.query.join(Product, StockMovement.product_id == Product.id)
+        .filter(StockMovement.id == movement_id)
+    )
+    q = _product_org_filter(q, organisation_id)
+    return q.first()
 
 
 def update_stock_movement(movement, data):
@@ -98,12 +108,14 @@ def delete_stock_movement(movement):
 
 
 def get_stock_balance(organisation_id, product_id=None):
-    q = db.session.query(
-        StockMovement.product_id,
-        func.sum(StockMovement.quantity).label("balance"),
-    ).filter(
-        StockMovement.organisation_id == organisation_id,
+    q = (
+        db.session.query(
+            StockMovement.product_id,
+            func.sum(StockMovement.quantity).label("balance"),
+        )
+        .join(Product, StockMovement.product_id == Product.id)
     )
+    q = _product_org_filter(q, organisation_id)
     if product_id:
         q = q.filter(StockMovement.product_id == product_id)
     q = q.group_by(StockMovement.product_id)

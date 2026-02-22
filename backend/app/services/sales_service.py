@@ -1,6 +1,6 @@
 from decimal import Decimal
 from app import db
-from app.models import Sale, PaymentReceived
+from app.models import Sale, PaymentReceived, Farm
 
 
 def get_organisation_id():
@@ -10,7 +10,7 @@ def get_organisation_id():
 
 def create_sale(organisation_id, data):
     sale = Sale(
-        organisation_id=organisation_id,
+        farm_id=data.get("farm_id"),
         date=data["date"],
         type=data.get("type"),
         quantity=data.get("quantity", 0),
@@ -29,7 +29,11 @@ def create_sale(organisation_id, data):
 
 
 def add_payment_received(sale_id, organisation_id, data):
-    sale = Sale.query.filter_by(id=sale_id, organisation_id=organisation_id).first()
+    sale = (
+        Sale.query.join(Farm, Sale.farm_id == Farm.id)
+        .filter(Sale.id == sale_id)
+        .first()
+    )
     if not sale:
         return None
     payment = PaymentReceived(
@@ -51,20 +55,27 @@ def add_payment_received(sale_id, organisation_id, data):
 
 
 def get_unpaid_sales(organisation_id):
-    return Sale.query.filter_by(
-        organisation_id=organisation_id,
-    ).filter(
-        Sale.payment_status.in_(["unpaid", "partial"])
-    ).order_by(Sale.date.desc()).all()
+    return (
+        Sale.query.join(Farm, Sale.farm_id == Farm.id)
+        .filter(Sale.payment_status.in_(["unpaid", "partial"]))
+        .order_by(Sale.date.desc())
+        .all()
+    )
 
 
 def get_sale(organisation_id, sale_id):
-    return Sale.query.filter_by(id=sale_id, organisation_id=organisation_id).first()
+    return (
+        Sale.query.join(Farm, Sale.farm_id == Farm.id)
+        .filter(Sale.id == sale_id)
+        .first()
+    )
 
 
 def update_sale(sale, data):
     if "date" in data:
         sale.date = data["date"]
+    if "farm_id" in data:
+        sale.farm_id = data["farm_id"]
     if "type" in data:
         sale.type = data["type"]
     if "quantity" in data:

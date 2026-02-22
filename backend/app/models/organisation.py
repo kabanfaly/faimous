@@ -13,4 +13,3 @@ class Organisation(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     users = db.relationship("User", backref="organisation", lazy="dynamic")
-    farms = db.relationship("Farm", backref="organisation", lazy="dynamic")

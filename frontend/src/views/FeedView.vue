@@ -47,6 +47,13 @@
         </div>
       </form>
     </Modal>
+
+    <ConfirmDialog
+      v-model="deleteDialogOpen"
+      :message="deleteDialogMessage"
+      :loading="deleteLoading"
+      @confirm="doConfirmDelete"
+    />
   </div>
 </template>
 
@@ -55,6 +62,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PaginatedTable from '../components/PaginatedTable.vue'
 import Modal from '../components/Modal.vue'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
 import IconButton from '../components/IconButton.vue'
 import PageHeader from '../components/PageHeader.vue'
 import { getPreparations, createPreparation, updatePreparation, deletePreparation } from '../api/feed'
@@ -64,9 +72,16 @@ const preparations = ref([])
 const loading = ref(false)
 const preparationModalOpen = ref(false)
 const editingPreparation = ref(null)
+const deleteDialogOpen = ref(false)
+const itemToDelete = ref(null)
+const deleteLoading = ref(false)
 
 const preparationModalTitle = computed(() =>
   editingPreparation.value ? `${t('common.edit')} ${t('feed.preparations')}` : `${t('common.add')} ${t('feed.preparations')}`
+)
+
+const deleteDialogMessage = computed(() =>
+  itemToDelete.value ? `${itemToDelete.value.date} — ${t('feed.confirmDelete')}` : ''
 )
 
 const columns = computed(() => [
@@ -105,15 +120,22 @@ function startEdit(item) {
 }
 
 function confirmDelete(item) {
-  if (window.confirm(`${item.date} — ${t('feed.confirmDelete')}`)) doDeletePreparation(item.id)
+  itemToDelete.value = item
+  deleteDialogOpen.value = true
 }
 
-async function doDeletePreparation(id) {
+async function doConfirmDelete() {
+  if (!itemToDelete.value) return
+  deleteLoading.value = true
   try {
-    await deletePreparation(id)
+    await deletePreparation(itemToDelete.value.id)
+    deleteDialogOpen.value = false
+    itemToDelete.value = null
     await load()
   } catch (e) {
     console.error(e)
+  } finally {
+    deleteLoading.value = false
   }
 }
 

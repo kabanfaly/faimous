@@ -6,6 +6,7 @@ from app.models.city import City
 from app.models.wholesaler import Wholesaler
 from app.models.supplier import Supplier
 from app.models.product import Product
+from app.models.product_type import ProductType
 from app.models.expense_category import ExpenseCategory
 from app.models.shareholder import Shareholder
 from app.models.egg_production import EggProduction
@@ -28,6 +29,7 @@ __all__ = [
     "Wholesaler",
     "Supplier",
     "Product",
+    "ProductType",
     "ExpenseCategory",
     "Shareholder",
     "EggProduction",

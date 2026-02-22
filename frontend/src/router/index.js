@@ -18,6 +18,7 @@ const routes = [
     children: [
       { path: '', name: 'Dashboard', component: () => import('../views/DashboardView.vue'), meta: { icon: 'dashboard' } },
       { path: 'production', name: 'Production', component: () => import('../views/ProductionView.vue'), meta: { icon: 'production' } },
+      { path: 'daily-operations', name: 'DailyOperations', component: () => import('../views/DailyOperationsView.vue'), meta: { icon: 'production' } },
       { path: 'sales', name: 'Sales', component: () => import('../views/SalesView.vue'), meta: { icon: 'sales' } },
       { path: 'purchases', name: 'Purchases', component: () => import('../views/PurchasesView.vue'), meta: { icon: 'purchases' } },
       { path: 'stock', name: 'Stock', component: () => import('../views/StockView.vue'), meta: { icon: 'stock' } },
@@ -29,6 +30,7 @@ const routes = [
       { path: 'cities', name: 'Cities', component: () => import('../views/CitiesView.vue'), meta: { icon: 'cities' } },
       { path: 'wholesalers', name: 'Wholesalers', component: () => import('../views/WholesalersView.vue'), meta: { icon: 'wholesalers' } },
       { path: 'products', name: 'Products', component: () => import('../views/ProductsView.vue'), meta: { icon: 'products' } },
+      { path: 'product-types', name: 'ProductTypes', component: () => import('../views/ProductTypesView.vue'), meta: { icon: 'productTypes' } },
       { path: 'expense-categories', name: 'ExpenseCategories', component: () => import('../views/ExpenseCategoriesView.vue'), meta: { icon: 'expenseCategories' } },
       { path: 'shareholders', name: 'Shareholders', component: () => import('../views/ShareholdersView.vue'), meta: { icon: 'shareholders' } },
       { path: 'farms', name: 'Farms', component: () => import('../views/FarmsView.vue'), meta: { icon: 'farms' } },

@@ -54,6 +54,14 @@
           <label class="required">{{ $t('shareholders.lastName') }}</label>
           <input v-model="shareholderForm.last_name" type="text" class="input" required />
         </div>
+        <div class="form-group">
+          <label>{{ $t('shareholders.phone') }}</label>
+          <input v-model="shareholderForm.phone" type="text" class="input" />
+        </div>
+        <div class="form-group">
+          <label class="required">{{ $t('shareholders.email') }}</label>
+          <input v-model="shareholderForm.email" type="email" class="input" required />
+        </div>
         <div class="form-actions">
           <button type="submit" class="btn btn-primary">{{ $t('common.save') }}</button>
           <button type="button" class="btn btn-ghost" @click="closeShareholderModal">{{ $t('common.cancel') }}</button>
@@ -88,6 +96,19 @@
         </div>
       </form>
     </Modal>
+
+    <ConfirmDialog
+      v-model="deleteShareholderDialogOpen"
+      :message="deleteShareholderDialogMessage"
+      :loading="deleteShareholderLoading"
+      @confirm="doConfirmDeleteShareholder"
+    />
+    <ConfirmDialog
+      v-model="deleteContributionDialogOpen"
+      :message="deleteContributionDialogMessage"
+      :loading="deleteContributionLoading"
+      @confirm="doConfirmDeleteContribution"
+    />
   </div>
 </template>
 
@@ -96,6 +117,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PaginatedTable from '../components/PaginatedTable.vue'
 import Modal from '../components/Modal.vue'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
 import IconButton from '../components/IconButton.vue'
 import PageHeader from '../components/PageHeader.vue'
 import { getShareholders, createShareholder, updateShareholder, deleteShareholder, getContributions, createContribution, updateContribution, deleteContribution } from '../api/contributions'
@@ -110,6 +132,12 @@ const shareholderModalOpen = ref(false)
 const contributionModalOpen = ref(false)
 const editingShareholder = ref(null)
 const editingContribution = ref(null)
+const deleteShareholderDialogOpen = ref(false)
+const itemToDeleteShareholder = ref(null)
+const deleteShareholderLoading = ref(false)
+const deleteContributionDialogOpen = ref(false)
+const itemToDeleteContribution = ref(null)
+const deleteContributionLoading = ref(false)
 
 const shareholderModalTitle = computed(() =>
   editingShareholder.value ? `${t('common.edit')} ${t('shareholders.title')}` : `${t('common.add')} ${t('shareholders.title')}`
@@ -120,6 +148,15 @@ const contributionModalTitle = computed(() =>
 
 const contributionsTotal = computed(() =>
   contributions.value.reduce((sum, c) => sum + (Number(c.amount) || 0), 0)
+)
+
+const deleteShareholderDialogMessage = computed(() => {
+  if (!itemToDeleteShareholder.value) return ''
+  const name = `${itemToDeleteShareholder.value.first_name} ${itemToDeleteShareholder.value.last_name}`
+  return `${name} — ${t('financing.confirmDeleteShareholder')}`
+})
+const deleteContributionDialogMessage = computed(() =>
+  itemToDeleteContribution.value ? `${itemToDeleteContribution.value.date} — ${t('financing.confirmDeleteContribution')}` : ''
 )
 
 const shareholderColumns = computed(() => [
@@ -151,7 +188,7 @@ const contributionColumns = computed(() => [
     },
   },
 ])
-const shareholderForm = ref({ first_name: '', last_name: '' })
+const shareholderForm = ref({ first_name: '', last_name: '', phone: '', email: '' })
 const contributionForm = ref({
   date: new Date().toISOString().slice(0, 10),
   shareholder_id: '',
@@ -161,7 +198,7 @@ const contributionForm = ref({
 
 function openAddShareholder() {
   editingShareholder.value = null
-  shareholderForm.value = { first_name: '', last_name: '' }
+  shareholderForm.value = { first_name: '', last_name: '', phone: '', email: '' }
   shareholderModalOpen.value = true
 }
 
@@ -172,21 +209,32 @@ function closeShareholderModal() {
 
 function startEditShareholder(item) {
   editingShareholder.value = item.id
-  shareholderForm.value = { first_name: item.first_name, last_name: item.last_name }
+  shareholderForm.value = {
+    first_name: item.first_name,
+    last_name: item.last_name,
+    phone: item.phone || '',
+    email: item.email || '',
+  }
   shareholderModalOpen.value = true
 }
 
 function confirmDeleteShareholder(item) {
-  const name = `${item.first_name} ${item.last_name}`
-  if (window.confirm(`${name} — ${t('financing.confirmDeleteShareholder')}`)) doDeleteShareholder(item.id)
+  itemToDeleteShareholder.value = item
+  deleteShareholderDialogOpen.value = true
 }
 
-async function doDeleteShareholder(id) {
+async function doConfirmDeleteShareholder() {
+  if (!itemToDeleteShareholder.value) return
+  deleteShareholderLoading.value = true
   try {
-    await deleteShareholder(id)
+    await deleteShareholder(itemToDeleteShareholder.value.id)
+    deleteShareholderDialogOpen.value = false
+    itemToDeleteShareholder.value = null
     await load()
   } catch (e) {
     console.error(e)
+  } finally {
+    deleteShareholderLoading.value = false
   }
 }
 
@@ -213,15 +261,22 @@ function startEditContribution(item) {
 }
 
 function confirmDeleteContribution(item) {
-  if (window.confirm(`${item.date} — ${t('financing.confirmDeleteContribution')}`)) doDeleteContribution(item.id)
+  itemToDeleteContribution.value = item
+  deleteContributionDialogOpen.value = true
 }
 
-async function doDeleteContribution(id) {
+async function doConfirmDeleteContribution() {
+  if (!itemToDeleteContribution.value) return
+  deleteContributionLoading.value = true
   try {
-    await deleteContribution(id)
+    await deleteContribution(itemToDeleteContribution.value.id)
+    deleteContributionDialogOpen.value = false
+    itemToDeleteContribution.value = null
     await load()
   } catch (e) {
     console.error(e)
+  } finally {
+    deleteContributionLoading.value = false
   }
 }
 

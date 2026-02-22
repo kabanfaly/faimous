@@ -8,6 +8,7 @@ class ExpenseCategorySchema(Schema):
 class ExpenseSchema(Schema):
     date = fields.Date(required=True)
     description = fields.Str(allow_none=True)
+    farm_id = fields.Str(allow_none=True)
     category_id = fields.Str(allow_none=True)
     amount = fields.Decimal(required=True, as_string=True)
     currency = fields.Str(allow_none=True)

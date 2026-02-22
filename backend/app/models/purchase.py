@@ -7,7 +7,6 @@ class Purchase(db.Model):
     __tablename__ = "purchases"
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    organisation_id = db.Column(db.String(36), db.ForeignKey("organisations.id"), nullable=False, index=True)
     date = db.Column(db.Date, nullable=False, index=True)
     supplier_id = db.Column(db.String(36), db.ForeignKey("suppliers.id"), nullable=True, index=True)
     product_id = db.Column(db.String(36), db.ForeignKey("products.id"), nullable=True, index=True)

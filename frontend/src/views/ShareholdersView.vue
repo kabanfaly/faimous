@@ -7,7 +7,10 @@
     <section class="card card-body" style="margin-bottom: var(--space-6);">
       <div class="section-header">
         <h2 class="section-title">{{ $t('shareholders.title') }}</h2>
-        <button type="button" class="btn btn-primary" @click="openAdd">{{ $t('common.add') }}</button>
+        <div class="section-actions">
+          <router-link to="/financing" class="btn btn-ghost">{{ $t('financing.title') }}</router-link>
+          <button type="button" class="btn btn-primary" @click="openAdd">{{ $t('common.add') }}</button>
+        </div>
       </div>
       <PaginatedTable
         :items="items"
@@ -38,8 +41,8 @@
           <input v-model="form.phone" type="text" class="input" />
         </div>
         <div class="form-group">
-          <label>{{ $t('shareholders.email') }}</label>
-          <input v-model="form.email" type="email" class="input" />
+          <label class="required">{{ $t('shareholders.email') }}</label>
+          <input v-model="form.email" type="email" class="input" required />
         </div>
         <div class="form-actions">
           <button type="submit" class="btn btn-primary">{{ $t('common.save') }}</button>
@@ -47,6 +50,13 @@
         </div>
       </form>
     </Modal>
+
+    <ConfirmDialog
+      v-model="deleteDialogOpen"
+      :message="deleteDialogMessage"
+      :loading="deleteLoading"
+      @confirm="doConfirmDelete"
+    />
   </div>
 </template>
 
@@ -55,6 +65,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PaginatedTable from '../components/PaginatedTable.vue'
 import Modal from '../components/Modal.vue'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
 import IconButton from '../components/IconButton.vue'
 import PageHeader from '../components/PageHeader.vue'
 import { getShareholders, createShareholder, updateShareholder, deleteShareholder } from '../api/shareholders'
@@ -65,6 +76,9 @@ const loading = ref(false)
 const modalOpen = ref(false)
 const editing = ref(null)
 const form = ref({ first_name: '', last_name: '', phone: '', email: '' })
+const deleteDialogOpen = ref(false)
+const itemToDelete = ref(null)
+const deleteLoading = ref(false)
 
 const columns = computed(() => [
   { key: 'first_name', label: t('shareholders.firstName') },
@@ -76,6 +90,12 @@ const columns = computed(() => [
 const modalTitle = computed(() =>
   editing.value ? `${t('common.edit')} ${t('shareholders.title')}` : `${t('common.add')} ${t('shareholders.title')}`
 )
+
+const deleteDialogMessage = computed(() => {
+  if (!itemToDelete.value) return ''
+  const name = `${itemToDelete.value.first_name} ${itemToDelete.value.last_name}`
+  return `${name} — ${t('shareholders.confirmDelete')}`
+})
 
 function openAdd() {
   resetForm()
@@ -110,16 +130,22 @@ function startEdit(item) {
 }
 
 function confirmDelete(item) {
-  const name = `${item.first_name} ${item.last_name}`
-  if (window.confirm(`${name} — ${t('shareholders.confirmDelete')}`)) doDelete(item.id)
+  itemToDelete.value = item
+  deleteDialogOpen.value = true
 }
 
-async function doDelete(id) {
+async function doConfirmDelete() {
+  if (!itemToDelete.value) return
+  deleteLoading.value = true
   try {
-    await deleteShareholder(id)
+    await deleteShareholder(itemToDelete.value.id)
+    deleteDialogOpen.value = false
+    itemToDelete.value = null
     await load()
   } catch (e) {
     console.error(e)
+  } finally {
+    deleteLoading.value = false
   }
 }
 

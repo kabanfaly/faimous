@@ -20,6 +20,7 @@ class FlockRecordSchema(Schema):
 
 
 class DailyOperationSchema(Schema):
+    id = fields.Str(dump_only=True)
     date = fields.Date(required=True)
     period = fields.Str(allow_none=True)
     collect1 = fields.Int(allow_none=True)
@@ -30,3 +31,4 @@ class DailyOperationSchema(Schema):
     hens = fields.Int(allow_none=True)
     dead = fields.Int(allow_none=True)
     farm_id = fields.Str(allow_none=True)
+    created_at = fields.DateTime(dump_only=True)

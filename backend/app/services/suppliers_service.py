@@ -1,14 +1,18 @@
 from app import db
-from app.models import Supplier
+from app.models import Supplier, City
 
 
 def list_suppliers(organisation_id):
-    return Supplier.query.filter_by(organisation_id=organisation_id).order_by(Supplier.name).all()
+    return (
+        Supplier.query.join(City, Supplier.city_id == City.id)
+        .filter(City.organisation_id == organisation_id)
+        .order_by(Supplier.name)
+        .all()
+    )
 
 
 def create_supplier(organisation_id, data):
     supplier = Supplier(
-        organisation_id=organisation_id,
         name=data["name"],
         phone=data.get("phone"),
         email=data.get("email"),
@@ -20,7 +24,11 @@ def create_supplier(organisation_id, data):
 
 
 def get_supplier(organisation_id, supplier_id):
-    return Supplier.query.filter_by(id=supplier_id, organisation_id=organisation_id).first()
+    return (
+        Supplier.query.join(City, Supplier.city_id == City.id)
+        .filter(Supplier.id == supplier_id, City.organisation_id == organisation_id)
+        .first()
+    )
 
 
 def update_supplier(supplier, data):

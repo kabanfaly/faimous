@@ -78,6 +78,11 @@ def register_blueprints(app):
     except ImportError:
         pass
     try:
+        from app.routes.product_types import product_types_bp
+        app.register_blueprint(product_types_bp, url_prefix="/api/product-types")
+    except ImportError:
+        pass
+    try:
         from app.routes.products import products_bp
         app.register_blueprint(products_bp, url_prefix="/api/products")
     except ImportError:

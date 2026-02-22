@@ -1,5 +1,5 @@
 from app import db
-from app.models import Expense, ExpenseCategory
+from app.models import Expense, ExpenseCategory, Farm
 
 
 def get_organisation_id():
@@ -19,12 +19,12 @@ def create_expense_category(organisation_id, data):
 
 
 def list_expenses(organisation_id):
-    return Expense.query.filter_by(organisation_id=organisation_id).order_by(Expense.date.desc()).all()
+    return Expense.query.join(Farm, Expense.farm_id == Farm.id).order_by(Expense.date.desc()).all()
 
 
 def create_expense(organisation_id, data):
     expense = Expense(
-        organisation_id=organisation_id,
+        farm_id=data.get("farm_id"),
         date=data["date"],
         description=data.get("description"),
         category_id=data.get("category_id"),
@@ -40,7 +40,11 @@ def create_expense(organisation_id, data):
 
 
 def get_expense(organisation_id, expense_id):
-    return Expense.query.filter_by(id=expense_id, organisation_id=organisation_id).first()
+    return (
+        Expense.query.join(Farm, Expense.farm_id == Farm.id)
+        .filter(Expense.id == expense_id)
+        .first()
+    )
 
 
 def update_expense(expense, data):
@@ -48,6 +52,8 @@ def update_expense(expense, data):
         expense.date = data["date"]
     if "description" in data:
         expense.description = data["description"]
+    if "farm_id" in data:
+        expense.farm_id = data["farm_id"]
     if "category_id" in data:
         expense.category_id = data["category_id"]
     if "amount" in data:
