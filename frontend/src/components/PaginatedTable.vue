@@ -22,11 +22,11 @@
       <p v-else-if="!loading" class="text-muted table-empty">{{ emptyText }}</p>
       <p v-else class="text-muted table-loading">{{ $t('common.loading') }}</p>
     </div>
-    <div v-if="totalPages > 1" class="pagination">
+    <div v-if="items.length > 0" class="pagination">
       <span class="pagination-info">
         {{ $t('pagination.showing', { from: startIndex + 1, to: Math.min(endIndex, items.length), total: items.length }) }}
       </span>
-      <div class="pagination-controls">
+      <div v-if="totalPages > 1" class="pagination-controls">
         <button
           type="button"
           class="btn btn-ghost btn-sm"

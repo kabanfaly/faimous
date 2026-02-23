@@ -1,9 +1,10 @@
 import uuid
-from datetime import date, datetime
+from datetime import date
 from app import db
+from app.models.audit_mixin import AuditMixin
 
 
-class DailyOperation(db.Model):
+class DailyOperation(AuditMixin, db.Model):
     __tablename__ = "daily_operations"
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -17,4 +18,3 @@ class DailyOperation(db.Model):
     broken = db.Column(db.Integer, nullable=True)
     hens = db.Column(db.Integer, nullable=True)
     dead = db.Column(db.Integer, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)

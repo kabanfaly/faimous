@@ -1,9 +1,9 @@
 import uuid
-from datetime import datetime
 from app import db
+from app.models.audit_mixin import AuditMixin
 
 
-class Purchase(db.Model):
+class Purchase(AuditMixin, db.Model):
     __tablename__ = "purchases"
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -16,12 +16,10 @@ class Purchase(db.Model):
     status = db.Column(db.String(50), default="unpaid")
     currency = db.Column(db.String(10), nullable=True)
     amount_base = db.Column(db.Numeric(18, 2), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
     supplier_payments = db.relationship("SupplierPayment", backref="purchase", lazy="dynamic", cascade="all, delete-orphan")
 
 
-class SupplierPayment(db.Model):
+class SupplierPayment(AuditMixin, db.Model):
     __tablename__ = "supplier_payments"
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -30,4 +28,3 @@ class SupplierPayment(db.Model):
     amount = db.Column(db.Numeric(18, 2), nullable=False)
     payment_method = db.Column(db.String(50), nullable=True)
     note = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)

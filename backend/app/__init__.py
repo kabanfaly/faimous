@@ -1,9 +1,9 @@
 import logging
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, g
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from flask_jwt_extended import JWTManager
+from flask_jwt_extended import JWTManager, get_jwt_identity
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -60,6 +60,16 @@ def create_app(config_name=None):
 
     @flask_app.before_request
     def log_request():
+        g.current_user_name = None
+        try:
+            user_id = get_jwt_identity()
+            if user_id:
+                from app.models import User
+                user = User.query.get(user_id)
+                if user:
+                    g.current_user_name = f"{user.first_name} {user.last_name}".strip()
+        except Exception:
+            g.current_user_name = None
         flask_app.logger.debug("Request: %s %s", request.method, request.path)
 
     @flask_app.after_request

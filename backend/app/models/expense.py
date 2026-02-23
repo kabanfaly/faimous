@@ -1,9 +1,9 @@
 import uuid
-from datetime import datetime
 from app import db
+from app.models.audit_mixin import AuditMixin
 
 
-class Expense(db.Model):
+class Expense(AuditMixin, db.Model):
     __tablename__ = "expenses"
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -16,4 +16,3 @@ class Expense(db.Model):
     amount_base = db.Column(db.Numeric(18, 2), nullable=True)
     invoice_file = db.Column(db.String(500), nullable=True)
     payment_method = db.Column(db.String(50), nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)

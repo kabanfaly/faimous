@@ -37,6 +37,7 @@ def get_products():
             "description": p.description,
             "product_type_id": p.product_type_id,
             "product_type": {"id": p.product_type.id, "name": p.product_type.name} if p.product_type else None,
+            "quantity": float(p.quantity) if p.quantity is not None else None,
             "unit": p.unit,
         }
         for p in products

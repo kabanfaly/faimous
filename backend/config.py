@@ -19,6 +19,11 @@ class Config:
         "CORS_ORIGINS",
         "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174",
     )
+    PRODUCT_UNITS = [
+        u.strip()
+        for u in os.environ.get("PRODUCT_UNITS", "unit,kg,g,l,ml,pcs").split(",")
+        if u.strip()
+    ]
 
 class DevelopmentConfig(Config):
     DEBUG = True

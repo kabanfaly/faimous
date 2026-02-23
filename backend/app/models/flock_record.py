@@ -1,9 +1,10 @@
 import uuid
-from datetime import date, datetime
+from datetime import date
 from app import db
+from app.models.audit_mixin import AuditMixin
 
 
-class FlockRecord(db.Model):
+class FlockRecord(AuditMixin, db.Model):
     __tablename__ = "flock_records"
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -12,4 +13,3 @@ class FlockRecord(db.Model):
     total_hens = db.Column(db.Integer, nullable=False, default=0)
     dead = db.Column(db.Integer, nullable=False, default=0)
     note = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)

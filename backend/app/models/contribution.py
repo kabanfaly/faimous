@@ -1,9 +1,9 @@
 import uuid
-from datetime import datetime
 from app import db
+from app.models.audit_mixin import AuditMixin
 
 
-class Contribution(db.Model):
+class Contribution(AuditMixin, db.Model):
     __tablename__ = "contributions"
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -13,4 +13,3 @@ class Contribution(db.Model):
     currency = db.Column(db.String(10), nullable=True)
     amount_base = db.Column(db.Numeric(18, 2), nullable=True)
     description = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)

@@ -39,6 +39,66 @@ def create_flock_record(organisation_id, data):
     return rec
 
 
+def list_egg_productions(organisation_id):
+    return EggProduction.query.order_by(EggProduction.date.desc()).all()
+
+
+def get_egg_production(organisation_id, egg_id):
+    return EggProduction.query.filter(EggProduction.id == egg_id).first()
+
+
+def update_egg_production(rec, data):
+    if "date" in data:
+        rec.date = data["date"]
+    if "eggs_count" in data:
+        rec.eggs_count = data.get("eggs_count", 0)
+    if "broken_count" in data:
+        rec.broken_count = data.get("broken_count", 0)
+    if "farm_id" in data:
+        rec.farm_id = data["farm_id"]
+    if "trays" in data:
+        rec.trays = data["trays"]
+    if "remaining" in data:
+        rec.remaining = data["remaining"]
+    if "note" in data:
+        rec.note = data["note"]
+    db.session.commit()
+    return rec
+
+
+def delete_egg_production(rec):
+    db.session.delete(rec)
+    db.session.commit()
+
+
+def list_flock_records(organisation_id):
+    return FlockRecord.query.order_by(FlockRecord.date.desc()).all()
+
+
+def get_flock_record(organisation_id, flock_id):
+    return FlockRecord.query.filter(FlockRecord.id == flock_id).first()
+
+
+def update_flock_record(rec, data):
+    if "date" in data:
+        rec.date = data["date"]
+    if "total_hens" in data:
+        rec.total_hens = data.get("total_hens", 0)
+    if "dead" in data:
+        rec.dead = data.get("dead", 0)
+    if "farm_id" in data:
+        rec.farm_id = data["farm_id"]
+    if "note" in data:
+        rec.note = data["note"]
+    db.session.commit()
+    return rec
+
+
+def delete_flock_record(rec):
+    db.session.delete(rec)
+    db.session.commit()
+
+
 def list_daily_operations(organisation_id):
     return (
         DailyOperation.query.join(Farm, DailyOperation.farm_id == Farm.id)

@@ -15,3 +15,7 @@ export function updateProduct(productId, data) {
 export function deleteProduct(productId) {
   return client.delete(`products/${productId}`)
 }
+
+export function getProductUnits() {
+  return client.get('products/units').then((r) => r.data)
+}

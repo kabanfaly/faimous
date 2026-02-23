@@ -1,9 +1,10 @@
 import uuid
-from datetime import date, datetime
+from datetime import date
 from app import db
+from app.models.audit_mixin import AuditMixin
 
 
-class FeedPreparation(db.Model):
+class FeedPreparation(AuditMixin, db.Model):
     __tablename__ = "feed_preparations"
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -14,4 +15,3 @@ class FeedPreparation(db.Model):
     hens_available = db.Column(db.Integer, nullable=True)
     expected_end_date = db.Column(db.Date, nullable=True)
     note = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)

@@ -12,16 +12,31 @@
         <template v-for="(group, gKey) in navGroups" :key="gKey">
           <div class="nav-group">
             <span class="nav-group-label">{{ $t(`nav.${group.labelKey}`) }}</span>
-            <router-link
-              v-for="item in group.items"
-              :key="item.to"
-              :to="item.to"
-              class="nav-link"
-              exact-active-class="nav-link-active"
-            >
-              <NavIcon :name="item.icon" />
-              <span>{{ $t(`nav.${item.i18nKey}`) }}</span>
-            </router-link>
+            <template v-for="item in group.items" :key="item.to || item.i18nKey">
+              <template v-if="item.children">
+                <span class="nav-submenu-label">{{ $t(`nav.${item.i18nKey}`) }}</span>
+                <router-link
+                  v-for="child in item.children"
+                  :key="child.to"
+                  :to="child.to"
+                  class="nav-link nav-link--sub"
+                  active-class="nav-link-active"
+                  exact-active-class="nav-link-active"
+                >
+                  <NavIcon :name="child.icon" />
+                  <span>{{ $t(`nav.${child.i18nKey}`) }}</span>
+                </router-link>
+              </template>
+              <router-link
+                v-else
+                :to="item.to"
+                class="nav-link"
+                exact-active-class="nav-link-active"
+              >
+                <NavIcon :name="item.icon" />
+                <span>{{ $t(`nav.${item.i18nKey}`) }}</span>
+              </router-link>
+            </template>
           </div>
         </template>
       </nav>
@@ -173,10 +188,17 @@ const navGroups = [
   {
     labelKey: 'groupFarm',
     items: [
-      { to: '/production', i18nKey: 'production', icon: 'production' },
-      { to: '/daily-operations', i18nKey: 'dailyOperations', icon: 'production' },
+      { to: '/production', i18nKey: 'production', icon: 'production', children: [
+        { to: '/production', i18nKey: 'productionOverview', icon: 'production' },
+        { to: '/production/eggs', i18nKey: 'productionEggs', icon: 'production' },
+        { to: '/production/flock', i18nKey: 'productionFlock', icon: 'flock' },
+      ]},
+      { to: '/daily-operations', i18nKey: 'dailyOperations', icon: 'dailyOperations' },
       { to: '/feed', i18nKey: 'feed', icon: 'feed' },
-      { to: '/stock', i18nKey: 'stock', icon: 'stock' },
+      { to: '/stock', i18nKey: 'stock', icon: 'stock', children: [
+        { to: '/stock', i18nKey: 'stockProducts', icon: 'stock' },
+        { to: '/stock/movements', i18nKey: 'stockMovements', icon: 'stockMovements' },
+      ]},
     ],
   },
   {
@@ -202,7 +224,6 @@ const navGroups = [
     labelKey: 'groupSetup',
     items: [
       { to: '/users', i18nKey: 'users', icon: 'users' },
-      { to: '/products', i18nKey: 'products', icon: 'products' },
       { to: '/product-types', i18nKey: 'productTypes', icon: 'productTypes' },
       { to: '/expense-categories', i18nKey: 'expenseCategories', icon: 'expenseCategories' },
     ],
@@ -300,6 +321,16 @@ const navGroups = [
   margin-top: 0;
 }
 
+.nav-submenu-label {
+  font-size: 0.7rem;
+  font-weight: var(--font-semibold);
+  color: var(--color-sidebar-text);
+  opacity: 0.7;
+  padding: var(--space-2) var(--space-4) var(--space-1);
+  margin-top: var(--space-1);
+  display: block;
+}
+
 .nav-link {
   display: flex;
   align-items: center;
@@ -326,6 +357,10 @@ const navGroups = [
 .nav-link-active:hover {
   background: var(--color-sidebar-active);
   opacity: 0.95;
+}
+
+.nav-link--sub {
+  padding-left: var(--space-8);
 }
 
 .sidebar-footer {

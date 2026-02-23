@@ -1,14 +1,15 @@
 from app import db
+from app.models.audit_mixin import AuditMixin
 
 
-class Currency(db.Model):
+class Currency(AuditMixin, db.Model):
     __tablename__ = "currencies"
 
     code = db.Column(db.String(10), primary_key=True)
     symbol = db.Column(db.String(10), nullable=True)
 
 
-class ExchangeRate(db.Model):
+class ExchangeRate(AuditMixin, db.Model):
     __tablename__ = "exchange_rates"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

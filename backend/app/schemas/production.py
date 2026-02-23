@@ -2,6 +2,7 @@ from marshmallow import Schema, fields, validate
 
 
 class EggProductionSchema(Schema):
+    id = fields.Str(dump_only=True)
     date = fields.Date(required=True)
     eggs_count = fields.Int(load_default=0)
     broken_count = fields.Int(load_default=0)
@@ -12,6 +13,7 @@ class EggProductionSchema(Schema):
 
 
 class FlockRecordSchema(Schema):
+    id = fields.Str(dump_only=True)
     date = fields.Date(required=True)
     total_hens = fields.Int(load_default=0)
     dead = fields.Int(load_default=0)

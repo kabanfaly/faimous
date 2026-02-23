@@ -1,8 +1,8 @@
 import enum
 import uuid
-from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
+from app.models.audit_mixin import AuditMixin
 
 
 class GenderEnum(str, enum.Enum):
@@ -10,7 +10,7 @@ class GenderEnum(str, enum.Enum):
     female = "female"
 
 
-class User(db.Model):
+class User(AuditMixin, db.Model):
     __tablename__ = "users"
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -27,9 +27,6 @@ class User(db.Model):
     language = db.Column(db.String(10), default="fr")
     activated = db.Column(db.Boolean, default=True, nullable=False)
     role = db.Column(db.String(20), nullable=False, default="user")
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 

@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 from flask_jwt_extended import jwt_required
 from marshmallow import ValidationError
 
@@ -26,6 +26,13 @@ def get_products_list():
         return jsonify({"message": "Organisation required"}), 403
     products = list_products(org_id)
     return jsonify([product_schema.dump(p) for p in products])
+
+
+@products_bp.route("/units", methods=["GET"])
+@jwt_required()
+def get_product_units():
+    units = current_app.config.get("PRODUCT_UNITS", [])
+    return jsonify(units)
 
 
 @products_bp.route("", methods=["POST"])

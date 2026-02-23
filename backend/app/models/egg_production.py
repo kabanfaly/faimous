@@ -1,9 +1,10 @@
 import uuid
-from datetime import datetime, date
+from datetime import date
 from app import db
+from app.models.audit_mixin import AuditMixin
 
 
-class EggProduction(db.Model):
+class EggProduction(AuditMixin, db.Model):
     __tablename__ = "egg_productions"
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -14,4 +15,3 @@ class EggProduction(db.Model):
     trays = db.Column(db.Integer, nullable=True)
     remaining = db.Column(db.Integer, nullable=True)
     note = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)

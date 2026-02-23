@@ -1,8 +1,9 @@
 import uuid
 from app import db
+from app.models.audit_mixin import AuditMixin
 
 
-class ProductType(db.Model):
+class ProductType(AuditMixin, db.Model):
     __tablename__ = "product_types"
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))

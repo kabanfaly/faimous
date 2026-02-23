@@ -11,6 +11,7 @@ class ProductSchema(Schema):
     product_type_id = fields.Str(required=True)
     product_type = fields.Nested(ProductTypeSchema, allow_none=True)
     description = fields.Str(allow_none=True)
+    quantity = fields.Decimal(allow_none=True, as_string=True)
     unit = fields.Str(allow_none=True)
 
 

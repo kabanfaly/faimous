@@ -18,6 +18,7 @@ def create_product(organisation_id, data):
         product_type_id=data.get("product_type_id"),
         name=data["name"],
         description=data.get("description"),
+        quantity=data.get("quantity"),
         unit=data.get("unit"),
     )
     db.session.add(product)
@@ -37,6 +38,8 @@ def update_product(product, data):
         product.description = data["description"]
     if "product_type_id" in data:
         product.product_type_id = data["product_type_id"]
+    if "quantity" in data:
+        product.quantity = data["quantity"]
     if "unit" in data:
         product.unit = data["unit"]
     db.session.commit()
